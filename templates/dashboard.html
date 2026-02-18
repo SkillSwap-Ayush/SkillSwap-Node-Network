@@ -59,7 +59,7 @@
                         <a href="{{ url_for('delete_user', user_id=user.id) }}" 
                            class="btn btn-sm btn-outline-danger rounded-pill px-3" 
                            onclick="return confirm('Purge this node?')">
-                            PURGE
+                             PURGE
                         </a>
                         {% else %}
                         <span class="text-muted small fw-bold">MASTER</span>
@@ -137,7 +137,7 @@
                                 </div>
                             </td>
                             <td class="text-end pe-4">
-                                <button class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm" onclick="syncNode(this)">SYNC NODE</button>
+                                <button class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm" onclick="syncNode(this, '{{ item.name }}', '{{ item.uid }}')">SYNC NODE</button>
                             </td>
                         </tr>
                         {% endfor %}
@@ -187,6 +187,26 @@
     </div>
 </div>
 
+<div id="chat-widget" class="premium-card shadow-lg d-none" style="position: fixed; bottom: 20px; right: 20px; width: 350px; z-index: 2000; border: 1px solid rgba(0, 82, 255, 0.2); border-radius: 20px; overflow: hidden; background: white; transform: translateY(0); transition: all 0.3s ease;">
+    <div class="p-3 bg-primary text-white d-flex justify-content-between align-items-center">
+        <div>
+            <h6 class="mb-0 fw-bold" id="chat-user-name">Secure Channel</h6>
+            <small class="opacity-75 font-monospace" style="font-size: 0.65rem;">ENCRYPTED_NODE_SYNC</small>
+        </div>
+        <button onclick="closeChat()" class="btn-close btn-close-white shadow-none" style="font-size: 0.8rem;"></button>
+    </div>
+    <div id="chat-messages" class="p-3 custom-scroll" style="height: 350px; overflow-y: auto; background: #fdfdfd; display: flex; flex-direction: column; gap: 10px;">
+    </div>
+    <div class="p-3 border-top bg-white">
+        <div class="input-group">
+            <input type="text" id="msg-input" class="form-control border-0 bg-light rounded-pill px-3 shadow-none" placeholder="Enter command..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <button class="btn btn-primary rounded-circle ms-2 shadow-sm" onclick="sendMessage()" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <i class="bi bi-send-fill"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
 <style>
     .premium-card {
         background: #ffffff;
@@ -202,17 +222,94 @@
     .bg-soft-blue { background: rgba(0, 82, 255, 0.05); }
     .custom-scroll::-webkit-scrollbar { width: 4px; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    
+    /* Chat Bubble Animation */
+    .msg-anim { animation: fadeInUp 0.3s ease; }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 </style>
 
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
-    function syncNode(btn) {
+    var socket = io();
+    var currentRoom = "";
+    var myName = "{{ name }}";
+
+    // Modifed syncNode to trigger chat
+    function syncNode(btn, targetName, targetId) {
+        if(btn.disabled) return;
+        
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>SYNCING...';
         btn.classList.replace('btn-primary', 'btn-outline-primary');
+        
         setTimeout(() => {
             btn.innerHTML = '<i class="bi bi-check-lg me-2"></i>SYNCED';
             btn.classList.replace('btn-outline-primary', 'btn-success');
-            btn.disabled = true;
-        }, 1500);
+            // Open Chat after sync
+            openChat(targetName, targetId);
+        }, 1000);
+    }
+
+    function openChat(targetName, targetId) {
+        document.getElementById('chat-widget').classList.remove('d-none');
+        document.getElementById('chat-user-name').innerText = "Sync: " + targetName;
+        
+        let myId = "{{ session['user_id'] }}";
+        currentRoom = (myId < targetId) ? `room_${myId}_${targetId}` : `room_${targetId}_${myId}`;
+
+        socket.emit('join', {'room': currentRoom});
+        
+        const msgDiv = document.getElementById('chat-messages');
+        msgDiv.innerHTML = '<div class="text-center small text-muted my-4">Handshake established. Loading logs...</div>';
+
+        fetch(`/get_messages/${currentRoom}`)
+            .then(res => res.json())
+            .then(data => {
+                msgDiv.innerHTML = "";
+                data.forEach(msg => appendMessage(msg.sender, msg.message));
+                scrollToBottom();
+            });
+    }
+
+    function closeChat() {
+        document.getElementById('chat-widget').classList.add('d-none');
+    }
+
+    function sendMessage() {
+        var input = document.getElementById('msg-input');
+        var msg = input.value.trim();
+        if (msg !== "" && currentRoom !== "") {
+            socket.emit('send_message', {'message': msg, 'room': currentRoom});
+            input.value = "";
+        }
+    }
+
+    socket.on('receive_message', function(data) {
+        appendMessage(data.sender, data.message);
+        scrollToBottom();
+    });
+
+    function appendMessage(sender, message) {
+        const msgDiv = document.getElementById('chat-messages');
+        const isMe = (sender === myName);
+        const bubble = `
+            <div class="d-flex ${isMe ? 'justify-content-end' : 'justify-content-start'} mb-1 msg-anim">
+                <div class="px-3 py-2 rounded-4 shadow-sm" style="
+                    max-width: 85%; font-size: 0.85rem;
+                    background: ${isMe ? '#0052FF' : '#f0f2f5'};
+                    color: ${isMe ? 'white' : '#111827'};
+                    border-bottom-${isMe ? 'right' : 'left'}-radius: 2px;">
+                    ${message}
+                </div>
+            </div>`;
+        msgDiv.insertAdjacentHTML('beforeend', bubble);
+    }
+
+    function scrollToBottom() {
+        const msgDiv = document.getElementById('chat-messages');
+        msgDiv.scrollTop = msgDiv.scrollHeight;
     }
 </script>
 
