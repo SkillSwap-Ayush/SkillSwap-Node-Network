@@ -4,21 +4,10 @@ import os
 import random
 import hashlib
 
-# --- MODULES IMPORT ---
-try:
-    from modules.security import hash_pass
-    from modules.analytics import calc_percentage
-except ImportError:
-    def hash_pass(password):
-        return hashlib.sha256(password.encode()).hexdigest()
-    def calc_percentage(part, total):
-        return round((part / total) * 100, 2) if total > 0 else 0
-
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = 'ayush_rtx3090_secret_key_pro'
 
 # --- DATABASE PATH CONFIGURATION (Render Special) ---
-# Ye code database ko server par sahi rasta dikhayega
 basedir = os.path.abspath(os.path.dirname(__file__))
 DB_PATH = os.path.join(basedir, 'database.db')
 
@@ -27,10 +16,14 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+# --- MODULES / UTILS ---
+def hash_pass(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
 # --- DATABASE INITIALIZATION ---
 def init_db():
     conn = get_db_connection()
-    # is_admin column (0 for User, 1 for Admin)
+    # Users Table
     conn.execute('''CREATE TABLE IF NOT EXISTS users 
                     (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                     name TEXT NOT NULL, 
@@ -42,6 +35,7 @@ def init_db():
                     website TEXT DEFAULT '',
                     is_admin INTEGER DEFAULT 0)''')
     
+    # Skills Table
     conn.execute('''CREATE TABLE IF NOT EXISTS skills 
                     (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                     user_id INTEGER, 
@@ -51,7 +45,6 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Site start hote hi database check karega
 with app.app_context():
     init_db()
 
@@ -86,7 +79,7 @@ def register():
         try:
             conn.execute('INSERT INTO users (name, email, password, is_admin) VALUES (?, ?, ?, 0)', (name, email, password))
             conn.commit()
-            flash('Account Created!', 'success')
+            flash('Account Created! Please Login.', 'success')
             return redirect(url_for('login'))
         except:
             flash('Email already exists!', 'danger')
@@ -94,7 +87,7 @@ def register():
             conn.close()
     return render_template('register.html')
 
-# --- PREMIUM DASHBOARD ---
+# --- MAIN DASHBOARD ---
 @app.route('/dashboard')
 def dashboard():
     if 'user_id' not in session: return redirect(url_for('login'))
@@ -134,11 +127,7 @@ def dashboard():
                               (session['user_id'], f'%{selected_cat}%', f'%{selected_cat}%')).fetchall()
     
     my_skills = conn.execute('SELECT * FROM skills WHERE user_id = ?', (session['user_id'],)).fetchall()
-
-    all_users = []
-    if session.get('is_admin') == 1:
-        all_users = conn.execute('SELECT * FROM users').fetchall()
-
+    all_users = conn.execute('SELECT * FROM users').fetchall() if session.get('is_admin') == 1 else []
     conn.close()
     
     return render_template('dashboard.html', 
@@ -151,35 +140,19 @@ def dashboard():
                            current_cat=selected_cat,
                            all_users=all_users)
 
-# --- ADMIN ACTIONS ---
-@app.route('/delete_user/<int:user_id>')
-def delete_user(user_id):
-    if session.get('is_admin') != 1:
-        flash("Unauthorized Access!", "danger")
-        return redirect(url_for('dashboard'))
-    
-    conn = get_db_connection()
-    conn.execute('DELETE FROM skills WHERE user_id = ?', (user_id,))
-    conn.execute('DELETE FROM users WHERE id = ?', (user_id,))
-    conn.commit()
-    conn.close()
-    flash(f"Node #{user_id} purged from network!", "warning")
-    return redirect(url_for('dashboard'))
-
 # --- SKILL MANAGEMENT ---
 @app.route('/add_skill', methods=['POST'])
 def add_skill():
     if 'user_id' not in session: return redirect(url_for('login'))
     name = request.form.get('skill_name')
     skill_type = request.form.get('skill_type')
-    
     if name:
         conn = get_db_connection()
         conn.execute('INSERT INTO skills (user_id, skill_name, skill_type) VALUES (?, ?, ?)', 
                      (session['user_id'], name, skill_type))
         conn.commit()
         conn.close()
-        flash(f'Protocol Initialized: {name} added!', 'success')
+        flash(f'Skill {name} added to your node!', 'success')
     return redirect(url_for('dashboard'))
 
 # --- USER PROFILE ---
@@ -201,17 +174,16 @@ def update_profile():
     conn.commit()
     conn.close()
     session['user_name'] = request.form.get('full_name')
-    flash('Profile Updated!', 'success')
+    flash('Node Profile Updated!', 'success')
     return redirect(url_for('profile'))
 
-# --- APP FEATURES ---
+# --- FEATURES ---
 @app.route('/notifications')
 def notifications():
     if 'user_id' not in session: return redirect(url_for('login'))
     notifs = [
-        {'id': 1, 'type': 'match', 'title': 'Skill Match Found!', 'desc': 'Someone wants to learn Python from you.', 'time': '2m ago', 'icon': 'bi-lightning-charge', 'color': 'primary'},
-        {'id': 2, 'type': 'message', 'title': 'New Connection', 'desc': 'Sneha sent you a swap invitation.', 'time': '1h ago', 'icon': 'bi-chat-left-dots', 'color': 'success'},
-        {'id': 3, 'type': 'system', 'title': 'Node Optimized', 'desc': 'Your node latency reduced by 40ms.', 'time': '5h ago', 'icon': 'bi-cpu', 'color': 'info'}
+        {'id': 1, 'title': 'Skill Match!', 'desc': 'New Mentor found for Python.', 'time': '2m ago', 'icon': 'bi-lightning', 'color': 'info'},
+        {'id': 2, 'title': 'System Update', 'desc': 'Node RTX 3090 optimized.', 'time': '1h ago', 'icon': 'bi-cpu', 'color': 'primary'}
     ]
     return render_template('notifications.html', name=session['user_name'], notifications=notifs)
 
@@ -219,20 +191,10 @@ def notifications():
 def settings():
     if 'user_id' not in session: return redirect(url_for('login'))
     options = {
-        'privacy': ['Public Node Visibility', 'Show Email to Mentors', 'Allow Direct Swaps', 'Show Online Status', 'Anonymize Analytics'],
-        'alerts': ['Email Notifications', 'Real-time Match Pings', 'Monthly Node Report', 'Browser Push Notifications', 'SMS Security Alerts']
+        'privacy': ['Public Node', 'Show Email', 'Allow Direct Swaps'],
+        'alerts': ['Email Pings', 'Match Notifications', 'Node Reports']
     }
     return render_template('settings.html', name=session['user_name'], options=options)
-
-@app.route('/help')
-def help():
-    if 'user_id' not in session: return redirect(url_for('login'))
-    help_data = {
-        'Account & Security': ['Reset password?', 'Enable 2FA Auth', 'Locked Node Recovery', 'Delete account', 'Session Logs'],
-        'Skill Swapping': ['Finding a Mentor', 'Skill Clusters', 'Swap invitations', 'Rating partner', 'Report Issue'],
-        'Technical Desk': ['Node Latency', 'Database Sync', 'UI Bugs', 'API Keys', 'Optimization']
-    }
-    return render_template('help.html', name=session['user_name'], help_data=help_data)
 
 @app.route('/mentors')
 def mentors():
@@ -249,17 +211,28 @@ def categories():
     if 'user_id' not in session: return redirect(url_for('login'))
     return render_template('categories.html', name=session['user_name'])
 
-@app.route('/feedback')
-def feedback():
+@app.route('/help')
+def help():
     if 'user_id' not in session: return redirect(url_for('login'))
-    return render_template('feedback.html', name=session['user_name'])
+    return render_template('help.html', name=session['user_name'])
 
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
+# --- ADMIN PURGE ---
+@app.route('/delete_user/<int:user_id>')
+def delete_user(user_id):
+    if session.get('is_admin') == 1:
+        conn = get_db_connection()
+        conn.execute('DELETE FROM skills WHERE user_id = ?', (user_id,))
+        conn.execute('DELETE FROM users WHERE id = ?', (user_id,))
+        conn.commit()
+        conn.close()
+        flash(f"User #{user_id} removed!", "warning")
+    return redirect(url_for('dashboard'))
+
 if __name__ == '__main__':
-    # Render ke liye host '0.0.0.0' aur port handle karna zaroori hai
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
