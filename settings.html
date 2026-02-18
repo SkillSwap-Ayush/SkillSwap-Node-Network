@@ -1,0 +1,85 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="mb-4">
+    <h2 class="fw-bold text-dark mb-1"><i class="bi bi-sliders2-vertical me-2 text-primary"></i>Node Configuration</h2>
+    <p class="text-muted">Manage your SkillSwap node protocols and security settings.</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-8">
+        
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-shield-lock me-2 text-primary"></i>Privacy Protocols</h5>
+            </div>
+            <div class="card-body p-4">
+                {% if options and options.privacy %}
+                    {% for opt in options.privacy %}
+                    <div class="d-flex justify-content-between align-items-center {% if not loop.last %}mb-4 border-bottom pb-3{% endif %}">
+                        <div>
+                            <h6 class="mb-0 fw-bold">{{ opt }}</h6>
+                            <small class="text-muted small">Control your node visibility on the global swap grid.</small>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="privacy{{ loop.index }}" {% if loop.index == 1 %}checked{% endif %}>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h5 class="fw-bold mb-0 text-dark"><i class="bi bi- megaphone me-2 text-primary"></i>Alert System</h5>
+            </div>
+            <div class="card-body p-4">
+                {% if options and options.alerts %}
+                    {% for opt in options.alerts %}
+                    <div class="d-flex justify-content-between align-items-center {% if not loop.last %}mb-4 border-bottom pb-3{% endif %}">
+                        <div>
+                            <h6 class="mb-0 fw-bold">{{ opt }}</h6>
+                            <small class="text-muted small">Configure real-time pings for node activity.</small>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="alert{{ loop.index }}" checked>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="card-footer bg-light border-0 p-3 text-end rounded-bottom-4">
+                <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 bg-primary text-white mb-4 p-4">
+            <h6 class="fw-bold"><i class="bi bi-cpu me-2"></i>Node Status: Active</h6>
+            <div class="progress bg-white bg-opacity-25 my-3" style="height: 6px;">
+                <div class="progress-bar bg-white" style="width: 85%"></div>
+            </div>
+            <p class="small mb-0 opacity-75">Your profile is 85% optimized for matching. Add a website to reach 100%.</p>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 p-4 border-start border-danger border-4">
+            <h6 class="fw-bold text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Danger Zone</h6>
+            <p class="text-muted small">Deactivating your node will purge all skill clusters and active swaps.</p>
+            <button class="btn btn-outline-danger btn-sm rounded-pill w-100 mt-2">Deactivate Node</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    .card {
+        transition: transform 0.2s ease;
+    }
+</style>
+
+{% endblock %}

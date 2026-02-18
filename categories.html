@@ -1,0 +1,122 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="mb-5 d-flex align-items-center justify-content-between">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">
+            <i class="bi bi-grid-3x3-gap-fill me-2 text-primary animate-pulse"></i>Skill Clusters
+        </h2>
+        <p class="text-muted">Select a technology node to discover specialized mentors and sync knowledge.</p>
+    </div>
+    <div class="d-none d-md-block">
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
+            <i class="bi bi-cpu me-1"></i> ACTIVE NETWORK: 102.4 Gbit/s
+        </span>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% set categories = [
+        ('Programming', 'bi-code-slash', 'primary', '240+', 'Python, JS, C++', 85),
+        ('UI/UX Design', 'bi-palette', 'success', '120+', 'Figma, UI Kit', 60),
+        ('Marketing', 'bi-megaphone', 'warning', '85+', 'SEO, Growth Ads', 45),
+        ('Photography', 'bi-camera', 'danger', '40+', 'Lenses, Editing', 30),
+        ('Cyber Security', 'bi-shield-lock', 'dark', '95+', 'Pentest, Kali', 70),
+        ('Data Science', 'bi-bar-chart-line', 'info', '110+', 'AI, Pandas, SQL', 55),
+        ('Business', 'bi-briefcase', 'secondary', '65+', 'Finance, Startup', 40),
+        ('Cloud', 'bi-cloud-check', 'primary', '55+', 'AWS, Docker', 50)
+    ] %}
+
+    {% for title, icon, color, count, tags, p_val in categories %}
+    <div class="col-xl-3 col-md-4 col-sm-6 mb-2">
+        <a href="{{ url_for('dashboard', category=title) }}" class="text-decoration-none">
+            <div class="card border-0 shadow-sm category-card h-100 p-4 position-relative overflow-hidden" style="--w: {{ p_val }}%;">
+                
+                <i class="bi {{ icon }} position-absolute end-0 bottom-0 mb-n2 me-n2 display-1 opacity-10 text-{{ color }}"></i>
+
+                <div class="d-flex justify-content-between mb-4 position-relative z-index-1">
+                    <div class="icon-box bg-{{ color }}-subtle text-{{ color }} rounded-4 d-flex align-items-center justify-content-center shadow-sm" style="width: 55px; height: 55px;">
+                        <i class="bi {{ icon }} fs-2"></i>
+                    </div>
+                    <span class="badge bg-white text-{{ color }} border border-{{ color }}-subtle rounded-pill small px-2 py-1 shadow-sm" style="height: fit-content;">
+                        <i class="bi bi-people-fill me-1"></i>{{ count }}
+                    </span>
+                </div>
+                
+                <h5 class="fw-bold text-dark mb-1 position-relative z-index-1">{{ title }}</h5>
+                <p class="text-muted small mb-4 position-relative z-index-1" style="min-height: 35px;">{{ tags }}</p>
+                
+                <div class="mt-auto position-relative z-index-1">
+                    <div class="d-flex justify-content-between mb-2" style="font-size: 11px;">
+                        <span class="fw-bold text-uppercase tracking-wider opacity-75">Network Demand</span>
+                        <span class="fw-bold text-{{ color }}">{{ p_val }}%</span>
+                    </div>
+                    <div class="progress border-0 bg-{{ color }}-subtle" style="height: 8px; border-radius: 12px;">
+                        <div class="progress-bar bg-{{ color }} progress-bar-striped progress-bar-animated shadow-none custom-bar"></div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="mt-5 p-4 rounded-4 bg-light border border-dashed border-primary text-center">
+    <p class="text-muted mb-0">Missing a cluster? 
+        <a href="#" class="text-primary fw-bold text-decoration-none ms-2" onclick="alert('Proposal Logged: AI will analyze this node.')">
+            <i class="bi bi-plus-circle me-1"></i>Propose New Node
+        </a>
+    </p>
+</div>
+
+<style>
+    .category-card {
+        border-radius: 24px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(0,0,0,0.03) !important;
+    }
+    
+    .category-card:hover {
+        transform: translateY(-12px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08) !important;
+        background: #ffffff;
+        border-color: rgba(13, 110, 253, 0.2) !important;
+    }
+
+    .icon-box {
+        transition: 0.3s;
+    }
+
+    .category-card:hover .icon-box {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    /* Logic for Demand Bar */
+    .custom-bar {
+        width: var(--w) !important; 
+        border-radius: 12px;
+    }
+
+    .progress { 
+        background-color: rgba(0,0,0,0.05);
+        overflow: visible;
+    }
+
+    .animate-pulse {
+        animation: pulse-icon 2s infinite;
+    }
+
+    @keyframes pulse-icon {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+
+    .tracking-wider {
+        letter-spacing: 0.05rem;
+    }
+</style>
+
+{% endblock %}
