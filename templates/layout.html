@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkillSwap Pro | RTX 3090 Edition</title>
+    <title>SkillSwap Pro | Electric Edition</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -13,27 +13,28 @@
         :root { 
             --sidebar-width: 280px; 
             --transition-speed: 0.4s;
-            --neon-blue: #00f2fe;
-            --neon-purple: #7000ff;
+            --cyber-blue: #00d2ff; /* Sky Blue */
+            --cyber-pink: #ff007f; /* Hot Pink */
+            --cyber-yellow: #ffee00; /* Neon Yellow */
+            --light-bg: #f8faff;
             --dark-bg: #0b0e11;
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.1);
         }
         
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #f0f2f5;
+            background-color: var(--light-bg);
             color: #1a202c;
             overflow-x: hidden;
             transition: all var(--transition-speed);
         }
 
+        /* --- Dark Mode Support --- */
         body.dark-theme {
             background-color: var(--dark-bg) !important;
             color: #e2e8f0;
         }
 
-        /* --- Loader Setup --- */
+        /* --- Custom Loader --- */
         #loader-overlay {
             position: fixed;
             top: 0; left: 0;
@@ -47,45 +48,50 @@
         }
         body.dark-theme #loader-overlay { background: var(--dark-bg); }
 
-        /* --- Sidebar --- */
+        /* --- Electric Sidebar --- */
         .sidebar { 
             width: var(--sidebar-width); 
             min-height: 100vh; 
             position: fixed; 
             z-index: 1000;
             background: #ffffff;
-            border-right: 1px solid var(--glass-border);
+            border-right: 2px solid rgba(0, 210, 255, 0.1);
             transition: all var(--transition-speed);
             display: flex;
             flex-direction: column;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.02);
         }
         body.dark-theme .sidebar {
             background: rgba(15, 17, 20, 0.95);
             backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
         }
 
+        /* --- Nav Links with Custom Colors --- */
         .nav-link {
             color: #64748b;
-            font-weight: 500;
+            font-weight: 600;
             padding: 12px 20px;
-            border-radius: 12px;
+            border-radius: 14px;
             margin: 4px 15px;
-            transition: all 0.3s;
+            transition: 0.3s;
         }
 
+        /* Dashboard - Blue */
         .nav-link:hover, .nav-link.active {
-            background: linear-gradient(45deg, var(--neon-blue), #4facfe);
-            color: #000 !important;
-            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
+            background: linear-gradient(45deg, var(--cyber-blue), #00bcff);
+            color: #fff !important;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
             transform: translateX(5px);
         }
 
+        /* Sidebar Section Labels */
         .section-label {
             font-size: 0.65rem;
             text-transform: uppercase;
             font-weight: 800;
             letter-spacing: 1.5px;
-            color: #94a3b8;
+            color: var(--cyber-pink);
             margin: 20px 0 10px 30px;
         }
 
@@ -96,22 +102,33 @@
             padding: 30px;
         }
 
+        /* --- Telemetry Boxes --- */
         .telemetry-box {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.75rem;
-            padding: 5px 15px;
-            border-radius: 8px;
-            background: rgba(0, 242, 254, 0.1);
-            color: #00b4c0;
+            padding: 6px 14px;
+            border-radius: 10px;
+            background: #fff;
+            color: var(--cyber-blue);
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+        body.dark-theme .telemetry-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255,255,255,0.1);
         }
 
-        .pulse-animation {
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(0, 242, 254, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(0, 242, 254, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 242, 254, 0); }
+        .latency-pulse { color: var(--cyber-pink); font-weight: bold; }
+
+        /* Status Badge Yellow */
+        .rtx-badge {
+            background: var(--cyber-yellow);
+            color: #000;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 20px;
+            box-shadow: 0 0 15px rgba(255, 238, 0, 0.4);
         }
 
         @media (max-width: 992px) {
@@ -120,20 +137,18 @@
         }
     </style>
 </head>
-<body class="dark-theme"> 
-
-    <div id="loader-overlay">
+<body class="dark-theme"> <div id="loader-overlay">
         <div class="text-center">
-            <div class="spinner-border text-info" role="status" style="width: 3.5rem; height: 3.5rem; border-width: 5px;"></div>
-            <p class="mt-4 fw-bold text-info" style="letter-spacing: 3px; font-family: 'JetBrains Mono';">INITIALIZING NODE...</p>
+            <div class="spinner-grow text-info" role="status" style="width: 3rem; height: 3rem;"></div>
+            <p class="mt-4 fw-bold" style="letter-spacing: 3px; font-family: 'JetBrains Mono'; color: var(--cyber-blue);">NODE_LOADING...</p>
         </div>
     </div>
 
-    <div class="sidebar shadow-lg">
+    <div class="sidebar shadow-sm">
         <div class="p-4 text-center">
-            <h2 class="fw-bold mb-0" style="letter-spacing: -1px;">SkillSwap<span style="color: var(--neon-blue);">.</span></h2>
-            <div class="badge mt-2 pulse-animation" style="background: rgba(0, 242, 254, 0.1); color: var(--neon-blue); border: 1px solid var(--neon-blue);">
-                <i class="bi bi-cpu me-1"></i> RTX 3090 CORE
+            <h2 class="fw-bold mb-0" style="letter-spacing: -1px; color: #1a202c;">Skill<span style="color: var(--cyber-pink);">Swap</span></h2>
+            <div class="mt-2">
+                <span class="rtx-badge"><i class="bi bi-cpu me-1"></i> RTX 3090 CORE</span>
             </div>
         </div>
         
@@ -143,31 +158,31 @@
                 <i class="bi bi-speedometer2 me-2"></i> Dashboard
             </a>
             <a href="{{ url_for('profile') }}" class="nav-link {{ 'active' if request.path == url_for('profile') }}">
-                <i class="bi bi-shield-lock me-2"></i> My Profile
+                <i class="bi bi-person-bounding-box me-2" style="color: var(--cyber-blue);"></i> My Profile
             </a>
             <a href="{{ url_for('mentors') }}" class="nav-link {{ 'active' if request.path == url_for('mentors') }}">
-                <i class="bi bi-incognito me-2"></i> Mentors
+                <i class="bi bi-lightning-charge-fill me-2" style="color: var(--cyber-yellow); -webkit-text-stroke: 1px #888;"></i> Mentors
             </a>
 
-            <div class="section-label">Connectivity</div>
+            <div class="section-label" style="color: var(--cyber-blue);">Connectivity</div>
             <a href="{{ url_for('notifications') }}" class="nav-link {{ 'active' if request.path == url_for('notifications') }}">
-                <i class="bi bi-bell me-2"></i> Notifications
+                <i class="bi bi-bell-fill me-2" style="color: var(--cyber-pink);"></i> Notifications
             </a>
             <a href="{{ url_for('categories') }}" class="nav-link {{ 'active' if request.path == url_for('categories') }}">
-                <i class="bi bi-layers me-2"></i> Clusters
+                <i class="bi bi-grid-fill me-2" style="color: var(--cyber-blue);"></i> Clusters
             </a>
 
             <div class="section-label">System</div>
             <a href="{{ url_for('settings') }}" class="nav-link {{ 'active' if request.path == url_for('settings') }}">
-                <i class="bi bi-sliders2-vertical me-2"></i> Node Config
+                <i class="bi bi-sliders me-2"></i> Node Config
             </a>
             <a href="{{ url_for('help') }}" class="nav-link">
-                <i class="bi bi-question-circle me-2"></i> Help Desk
+                <i class="bi bi-question-diamond-fill me-2" style="color: var(--cyber-yellow);"></i> Help Desk
             </a>
         </div>
 
         <div class="p-4 mt-auto">
-            <a href="{{ url_for('logout') }}" class="btn btn-outline-danger w-100 rounded-4 border-2 fw-bold">
+            <a href="{{ url_for('logout') }}" class="btn btn-dark w-100 rounded-4 fw-bold shadow">
                 <i class="bi bi-power me-2"></i> DISCONNECT
             </a>
         </div>
@@ -175,31 +190,31 @@
 
     <div class="main-content">
         
-        <div class="d-flex justify-content-between align-items-center mb-4 border border-info border-opacity-10 p-3 rounded-4 bg-dark bg-opacity-25">
-            <div class="d-flex align-items-center gap-3">
+        <div class="d-flex justify-content-between align-items-center mb-4 p-3 rounded-4 bg-white shadow-sm border border-info border-opacity-10">
+            <div class="d-flex align-items-center gap-2">
                 <div class="telemetry-box d-none d-md-block">
-                    <i class="bi bi-activity me-1"></i> LATENCY: <span id="latency">--ms</span>
+                    <i class="bi bi-activity me-1"></i> LATENCY: <span id="latency" class="latency-pulse">--ms</span>
                 </div>
-                <div class="telemetry-box d-none d-lg-block">
-                    <i class="bi bi-hdd-network me-1"></i> STATUS: ONLINE
+                <div class="telemetry-box d-none d-lg-block" style="border-color: var(--cyber-pink);">
+                    <i class="bi bi-reception-4 me-1" style="color: var(--cyber-pink);"></i> STATUS: ONLINE
                 </div>
             </div>
             
             <div class="d-flex align-items-center gap-4">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="themeSwitch" onclick="toggleTheme()" checked>
-                    <i class="bi bi-moon-stars-fill ms-1 small"></i>
+                    <i class="bi bi-moon-stars-fill ms-1 small text-primary"></i>
                 </div>
                 
                 <div class="text-end d-none d-sm-block">
-                    <p class="mb-0 fw-bold small text-uppercase" style="letter-spacing: 1px;">{{ name }}</p>
-                    <span class="text-muted" style="font-size: 11px; font-family: 'JetBrains Mono';">NODE-ID: SS-{{ session['user_id'] }}</span>
+                    <p class="mb-0 fw-bold small text-uppercase">{{ name }}</p>
+                    <span class="text-muted" style="font-size: 10px; font-family: 'JetBrains Mono';">UID: SS-{{ session['user_id'] }}</span>
                 </div>
                 
                 <div class="dropdown">
-                    <img src="https://ui-avatars.com/api/?name={{ name }}&background=00f2fe&color=000&bold=true" 
-                         class="rounded-circle cursor-pointer border border-2 border-info shadow" width="45" data-bs-toggle="dropdown">
-                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-3">
+                    <img src="https://ui-avatars.com/api/?name={{ name }}&background=00d2ff&color=fff&bold=true" 
+                         class="rounded-circle cursor-pointer border border-3 border-white shadow-sm" width="45" data-bs-toggle="dropdown">
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 mt-3">
                         <li><a class="dropdown-item p-3" href="{{ url_for('profile') }}"><i class="bi bi-person-circle me-2"></i> Account Info</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item p-3 text-danger" href="{{ url_for('logout') }}"><i class="bi bi-terminal me-2"></i> Shutdown Session</a></li>
@@ -212,7 +227,7 @@
           {% if messages %}
             {% for category, message in messages %}
               <div class="alert alert-{{ category }} border-0 shadow-sm rounded-4 mb-4" role="alert">
-                <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                <i class="bi bi-patch-check-fill me-2"></i> {{ message }}
               </div>
             {% endfor %}
           {% endif %}
@@ -232,10 +247,10 @@
 
         // Live Latency Simulation
         setInterval(() => {
-            const lat = Math.floor(Math.random() * (22 - 7 + 1) + 7);
+            const lat = Math.floor(Math.random() * (18 - 5 + 1) + 5);
             const latencyEl = document.getElementById('latency');
             if(latencyEl) latencyEl.innerText = lat + 'ms';
-        }, 2500);
+        }, 2000);
 
         // Theme Toggle Logic
         function toggleTheme() {
