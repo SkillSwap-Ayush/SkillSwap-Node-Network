@@ -17,16 +17,20 @@ except ImportError:
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = 'ayush_rtx3090_secret_key_pro'
 
-# --- DATABASE CONNECTION ---
+# --- DATABASE PATH CONFIGURATION (Render Special) ---
+# Ye code database ko server par sahi rasta dikhayega
+basedir = os.path.abspath(os.path.dirname(__file__))
+DB_PATH = os.path.join(basedir, 'database.db')
+
 def get_db_connection():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
 # --- DATABASE INITIALIZATION ---
 def init_db():
     conn = get_db_connection()
-    # ADDED: is_admin column (0 for User, 1 for Admin)
+    # is_admin column (0 for User, 1 for Admin)
     conn.execute('''CREATE TABLE IF NOT EXISTS users 
                     (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                     name TEXT NOT NULL, 
@@ -47,7 +51,9 @@ def init_db():
     conn.commit()
     conn.close()
 
-init_db()
+# Site start hote hi database check karega
+with app.app_context():
+    init_db()
 
 # --- AUTH ROUTES ---
 @app.route('/')
@@ -65,7 +71,7 @@ def login():
         if user:
             session['user_id'] = user['id']
             session['user_name'] = user['name']
-            session['is_admin'] = user['is_admin'] # <--- ADMIN STATUS SAVED IN SESSION
+            session['is_admin'] = user['is_admin']
             return redirect(url_for('dashboard'))
         flash('Invalid Credentials!', 'danger')
     return render_template('login.html')
@@ -78,7 +84,6 @@ def register():
         password = hash_pass(request.form['password'])
         conn = get_db_connection()
         try:
-            # Default registration is always a normal user (is_admin=0)
             conn.execute('INSERT INTO users (name, email, password, is_admin) VALUES (?, ?, ?, 0)', (name, email, password))
             conn.commit()
             flash('Account Created!', 'success')
@@ -130,7 +135,6 @@ def dashboard():
     
     my_skills = conn.execute('SELECT * FROM skills WHERE user_id = ?', (session['user_id'],)).fetchall()
 
-    # ADMIN FEATURE: Fetch all users for the Admin Panel
     all_users = []
     if session.get('is_admin') == 1:
         all_users = conn.execute('SELECT * FROM users').fetchall()
@@ -145,7 +149,7 @@ def dashboard():
                            others=others, 
                            my_skills=my_skills, 
                            current_cat=selected_cat,
-                           all_users=all_users) # <--- PASSING ALL USERS TO TEMPLATE
+                           all_users=all_users)
 
 # --- ADMIN ACTIONS ---
 @app.route('/delete_user/<int:user_id>')
@@ -207,7 +211,7 @@ def notifications():
     notifs = [
         {'id': 1, 'type': 'match', 'title': 'Skill Match Found!', 'desc': 'Someone wants to learn Python from you.', 'time': '2m ago', 'icon': 'bi-lightning-charge', 'color': 'primary'},
         {'id': 2, 'type': 'message', 'title': 'New Connection', 'desc': 'Sneha sent you a swap invitation.', 'time': '1h ago', 'icon': 'bi-chat-left-dots', 'color': 'success'},
-        {'id': 3, 'type': 'system', 'title': 'Node Optimized', 'desc': 'Your RTX 3090 node latency reduced by 40ms.', 'time': '5h ago', 'icon': 'bi-cpu', 'color': 'info'}
+        {'id': 3, 'type': 'system', 'title': 'Node Optimized', 'desc': 'Your node latency reduced by 40ms.', 'time': '5h ago', 'icon': 'bi-cpu', 'color': 'info'}
     ]
     return render_template('notifications.html', name=session['user_name'], notifications=notifs)
 
@@ -256,4 +260,6 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Render ke liye host '0.0.0.0' aur port handle karna zaroori hai
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
