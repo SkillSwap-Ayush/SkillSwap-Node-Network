@@ -28,7 +28,6 @@
             transition: all var(--transition-speed);
         }
 
-        /* --- Dark Mode Style (RTX High End) --- */
         body.dark-theme {
             background-color: var(--dark-bg) !important;
             color: #e2e8f0;
@@ -48,7 +47,7 @@
         }
         body.dark-theme #loader-overlay { background: var(--dark-bg); }
 
-        /* --- Cyber Sidebar --- */
+        /* --- Sidebar --- */
         .sidebar { 
             width: var(--sidebar-width); 
             min-height: 100vh; 
@@ -57,6 +56,8 @@
             background: #ffffff;
             border-right: 1px solid var(--glass-border);
             transition: all var(--transition-speed);
+            display: flex;
+            flex-direction: column;
         }
         body.dark-theme .sidebar {
             background: rgba(15, 17, 20, 0.95);
@@ -68,7 +69,7 @@
             font-weight: 500;
             padding: 12px 20px;
             border-radius: 12px;
-            margin: 4px 10px;
+            margin: 4px 15px;
             transition: all 0.3s;
         }
 
@@ -79,33 +80,25 @@
             transform: translateX(5px);
         }
 
-        /* --- Main Content Area --- */
+        .section-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: #94a3b8;
+            margin: 20px 0 10px 30px;
+        }
+
+        /* --- Content Area --- */
         .main-content { 
             margin-left: var(--sidebar-width); 
             min-height: 100vh;
             padding: 30px;
         }
 
-        /* --- Glassmorphism Cards --- */
-        .glass-card {
-            background: #ffffff;
-            border: 1px solid rgba(0,0,0,0.05);
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
-            transition: transform 0.3s;
-        }
-        body.dark-theme .glass-card {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(10px);
-            color: white;
-        }
-
-        /* --- Top Stats Bar --- */
         .telemetry-box {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            letter-spacing: 1px;
+            font-size: 0.75rem;
             padding: 5px 15px;
             border-radius: 8px;
             background: rgba(0, 242, 254, 0.1);
@@ -127,14 +120,16 @@
         }
     </style>
 </head>
-<body class="dark-theme"> <div id="loader-overlay">
+<body class="dark-theme"> 
+
+    <div id="loader-overlay">
         <div class="text-center">
             <div class="spinner-border text-info" role="status" style="width: 3.5rem; height: 3.5rem; border-width: 5px;"></div>
             <p class="mt-4 fw-bold text-info" style="letter-spacing: 3px; font-family: 'JetBrains Mono';">INITIALIZING NODE...</p>
         </div>
     </div>
 
-    <div class="sidebar d-flex flex-column shadow-lg">
+    <div class="sidebar shadow-lg">
         <div class="p-4 text-center">
             <h2 class="fw-bold mb-0" style="letter-spacing: -1px;">SkillSwap<span style="color: var(--neon-blue);">.</span></h2>
             <div class="badge mt-2 pulse-animation" style="background: rgba(0, 242, 254, 0.1); color: var(--neon-blue); border: 1px solid var(--neon-blue);">
@@ -142,34 +137,34 @@
             </div>
         </div>
         
-        <ul class="nav nav-pills flex-column mb-auto mt-3">
-            <li class="nav-item">
-                <a href="{{ url_for('dashboard') }}" class="nav-link {{ 'active' if request.path == url_for('dashboard') }}">
-                    <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                </a>
-            </li>
-            <li>
-                <a href="{{ url_for('profile') }}" class="nav-link {{ 'active' if request.path == url_for('profile') }}">
-                    <i class="bi bi-shield-lock me-2"></i> My Node Profile
-                </a>
-            </li>
-            <li>
-                <a href="{{ url_for('mentors') }}" class="nav-link {{ 'active' if request.path == url_for('mentors') }}">
-                    <i class="bi bi-incognito me-2"></i> Global Experts
-                </a>
-            </li>
-            <li>
-                <a href="{{ url_for('categories') }}" class="nav-link {{ 'active' if request.path == url_for('categories') }}">
-                    <i class="bi bi-layers me-2"></i> Skill Clusters
-                </a>
-            </li>
-            <hr class="mx-4 my-4 opacity-10">
-            <li>
-                <a href="{{ url_for('settings') }}" class="nav-link {{ 'active' if request.path == url_for('settings') }}">
-                    <i class="bi bi-sliders2-vertical me-2"></i> Node Config
-                </a>
-            </li>
-        </ul>
+        <div class="overflow-y-auto">
+            <div class="section-label">Main Console</div>
+            <a href="{{ url_for('dashboard') }}" class="nav-link {{ 'active' if request.path == url_for('dashboard') }}">
+                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+            </a>
+            <a href="{{ url_for('profile') }}" class="nav-link {{ 'active' if request.path == url_for('profile') }}">
+                <i class="bi bi-shield-lock me-2"></i> My Profile
+            </a>
+            <a href="{{ url_for('mentors') }}" class="nav-link {{ 'active' if request.path == url_for('mentors') }}">
+                <i class="bi bi-incognito me-2"></i> Mentors
+            </a>
+
+            <div class="section-label">Connectivity</div>
+            <a href="{{ url_for('notifications') }}" class="nav-link {{ 'active' if request.path == url_for('notifications') }}">
+                <i class="bi bi-bell me-2"></i> Notifications
+            </a>
+            <a href="{{ url_for('categories') }}" class="nav-link {{ 'active' if request.path == url_for('categories') }}">
+                <i class="bi bi-layers me-2"></i> Clusters
+            </a>
+
+            <div class="section-label">System</div>
+            <a href="{{ url_for('settings') }}" class="nav-link {{ 'active' if request.path == url_for('settings') }}">
+                <i class="bi bi-sliders2-vertical me-2"></i> Node Config
+            </a>
+            <a href="{{ url_for('help') }}" class="nav-link">
+                <i class="bi bi-question-circle me-2"></i> Help Desk
+            </a>
+        </div>
 
         <div class="p-4 mt-auto">
             <a href="{{ url_for('logout') }}" class="btn btn-outline-danger w-100 rounded-4 border-2 fw-bold">
@@ -180,7 +175,7 @@
 
     <div class="main-content">
         
-        <div class="d-flex justify-content-between align-items-center mb-4 glass-card p-3">
+        <div class="d-flex justify-content-between align-items-center mb-4 border border-info border-opacity-10 p-3 rounded-4 bg-dark bg-opacity-25">
             <div class="d-flex align-items-center gap-3">
                 <div class="telemetry-box d-none d-md-block">
                     <i class="bi bi-activity me-1"></i> LATENCY: <span id="latency">--ms</span>
@@ -198,7 +193,7 @@
                 
                 <div class="text-end d-none d-sm-block">
                     <p class="mb-0 fw-bold small text-uppercase" style="letter-spacing: 1px;">{{ name }}</p>
-                    <span class="text-muted" style="font-size: 11px; font-family: 'JetBrains Mono';">UID: SS-{{ session['user_id'] }}</span>
+                    <span class="text-muted" style="font-size: 11px; font-family: 'JetBrains Mono';">NODE-ID: SS-{{ session['user_id'] }}</span>
                 </div>
                 
                 <div class="dropdown">
@@ -228,7 +223,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Loader
+        // Loader Logic
         window.addEventListener('load', () => {
             const loader = document.getElementById('loader-overlay');
             loader.style.opacity = '0';
@@ -237,11 +232,12 @@
 
         // Live Latency Simulation
         setInterval(() => {
-            const lat = Math.floor(Math.random() * (20 - 5 + 1) + 5);
-            document.getElementById('latency').innerText = lat + 'ms';
-        }, 2000);
+            const lat = Math.floor(Math.random() * (22 - 7 + 1) + 7);
+            const latencyEl = document.getElementById('latency');
+            if(latencyEl) latencyEl.innerText = lat + 'ms';
+        }, 2500);
 
-        // Theme Toggle
+        // Theme Toggle Logic
         function toggleTheme() {
             const body = document.body;
             body.classList.toggle('dark-theme');
