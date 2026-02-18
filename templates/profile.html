@@ -1,0 +1,126 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center p-4 rounded-4 h-100">
+            <div class="position-relative d-inline-block mx-auto mb-3">
+                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold shadow-lg" 
+                     style="width: 130px; height: 130px; font-size: 3.5rem; background: linear-gradient(45deg, #0d6efd, #0dcaf0);">
+                    {{ name[:2].upper() }}
+                </div>
+                <span class="position-absolute bottom-0 end-0 bg-success border border-4 border-white rounded-circle p-2 shadow-sm" title="Online Status"></span>
+            </div>
+            
+            <h4 class="fw-bold mb-1 text-dark">{{ name }}</h4>
+            <p class="text-muted small mb-3">RTX 3090 Verified Node</p>
+            
+            <div class="d-flex justify-content-center gap-2 mb-4">
+                <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill">Expert</span>
+                <span class="badge bg-dark text-white px-3 py-2 rounded-pill">ID: #00{{ user.id if user else '1' }}</span>
+            </div>
+            
+            <div class="row text-center bg-light mx-1 py-3 rounded-4 mb-4">
+                <div class="col-6 border-end">
+                    <h6 class="fw-bold mb-0">12</h6>
+                    <small class="text-muted">Connections</small>
+                </div>
+                <div class="col-6">
+                    <h6 class="fw-bold mb-0">4.8</h6>
+                    <small class="text-muted">Rating</small>
+                </div>
+            </div>
+
+            <div class="text-start mb-4">
+                <div class="d-flex justify-content-between small fw-bold mb-1">
+                    <span>Profile Strength</span>
+                    <span class="text-primary">85%</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar bg-primary" style="width: 85%"></div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button class="btn btn-outline-primary rounded-pill btn-sm"><i class="bi bi-share me-2"></i>Share Node</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm p-4 rounded-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0"><i class="bi bi-gear-fill me-2 text-primary"></i>Account Intelligence</h5>
+                <span class="text-muted small">Last updated: Just now</span>
+            </div>
+            
+            <form action="/update_profile" method="POST">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-secondary">Full Identity</label>
+                        <input type="text" name="full_name" class="form-control bg-light border-0 py-2 px-3" value="{{ name }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-secondary">System Role</label>
+                        <select name="role" class="form-select bg-light border-0 py-2">
+                            <option value="Expert/Mentor" {% if user and user.role == 'Expert/Mentor' %}selected{% endif %}>Expert/Mentor</option>
+                            <option value="Learner/Peer" {% if user and user.role == 'Learner/Peer' %}selected{% endif %}>Learner/Peer</option>
+                            <option value="Hybrid Node" {% if user and user.role == 'Hybrid Node' %}selected{% endif %}>Hybrid Node</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-secondary">Location</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="bi bi-geo-alt"></i></span>
+                            <input type="text" name="location" class="form-control bg-light border-0 py-2" placeholder="e.g. India" value="{{ user.location if user else '' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-secondary">Portfolio URL</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="bi bi-link-45deg"></i></span>
+                            <input type="url" name="website" class="form-control bg-light border-0 py-2" placeholder="https://..." value="{{ user.website if user else '' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-secondary">Expertise Bio</label>
+                    <textarea name="bio" class="form-control bg-light border-0 px-3 py-2" rows="4" placeholder="Tell the network about your expertise...">{{ user.bio if user else '' }}</textarea>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="publicProfile" checked>
+                        <label class="form-check-label small text-muted" for="publicProfile">Public Visibility</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill fw-bold shadow">
+                        <i class="bi bi-cloud-arrow-up-fill me-2"></i>Sync Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card border-0 shadow-sm p-4 rounded-4 mt-4 bg-dark text-white overflow-hidden position-relative">
+            <div class="position-relative z-1">
+                <h6 class="fw-bold mb-3 d-flex justify-content-between">
+                    <span>Active Skill Clusters</span>
+                    <a href="#" class="text-primary text-decoration-none small">Manage</a>
+                </h6>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge bg-primary border border-primary px-3 py-2 rounded-3">Python 3.x</span>
+                    <span class="badge bg-info text-dark px-3 py-2 rounded-3">UI/UX Design</span>
+                    <span class="badge bg-warning text-dark px-3 py-2 rounded-3">Flask API</span>
+                    <span class="badge bg-danger px-3 py-2 rounded-3">Deep Learning</span>
+                    <span class="badge border border-secondary text-secondary px-3 py-2 rounded-3" style="cursor: pointer;">+ Add Node</span>
+                </div>
+            </div>
+            <i class="bi bi-cpu position-absolute end-0 bottom-0 opacity-10" style="font-size: 6rem; transform: translate(20%, 20%);"></i>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
