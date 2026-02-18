@@ -3,12 +3,13 @@ import sqlite3
 import os
 import random
 import hashlib
-from datetime import datetime # Chuta tha (Zaruri hai chat ke liye)
-from flask_socketio import SocketIO, emit, join_room # Chuta tha (Zaruri hai live chat ke liye)
+from datetime import datetime
+from flask_socketio import SocketIO, emit, join_room
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = 'ayush_rtx3090_secret_key_pro'
-socketio = SocketIO(app, cors_allowed_origins="*") # Socket initialize kiya
+# SocketIO initialization with async mode for better compatibility
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 # --- DATABASE PATH CONFIGURATION ---
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -22,7 +23,7 @@ def get_db_connection():
 def hash_pass(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-# --- DATABASE INITIALIZATION (Updated with Messages) ---
+# --- DATABASE INITIALIZATION ---
 def init_db():
     conn = get_db_connection()
     # Users Table
@@ -38,7 +39,7 @@ def init_db():
                     skill_name TEXT NOT NULL, skill_type TEXT NOT NULL, 
                     FOREIGN KEY(user_id) REFERENCES users(id))''')
 
-    # --- CHAT MESSAGES TABLE (Naya Addition) ---
+    # Chat Messages Table
     conn.execute('''CREATE TABLE IF NOT EXISTS messages 
                     (id INTEGER PRIMARY KEY AUTOINCREMENT, room TEXT NOT NULL, 
                     sender TEXT NOT NULL, message TEXT NOT NULL, timestamp DATETIME)''')
@@ -49,7 +50,7 @@ def init_db():
 with app.app_context():
     init_db()
 
-# --- SOCKET.IO LOGIC (Live Chat) ---
+# --- SOCKET.IO LOGIC ---
 @socketio.on('join')
 def handle_join(data):
     room = data['room']
@@ -61,17 +62,14 @@ def handle_send(data):
     msg = data['message']
     sender = session.get('user_name', 'Anonymous')
     
-    # Save to Database
     conn = get_db_connection()
     conn.execute('INSERT INTO messages (room, sender, message, timestamp) VALUES (?, ?, ?, ?)',
                  (room, sender, msg, datetime.now()))
     conn.commit()
     conn.close()
     
-    # Broadcast to Room
     emit('receive_message', {'message': msg, 'sender': sender}, room=room)
 
-# Route to fetch history
 @app.route('/get_messages/<room>')
 def get_messages(room):
     conn = get_db_connection()
@@ -162,7 +160,21 @@ def dashboard():
                            analytics=analytics, telemetry=telemetry, 
                            others=others, current_cat=selected_cat, all_users=all_users)
 
-# --- SKILL MANAGEMENT ---
+# --- HELP SECTION (FIXED 500 ERROR) ---
+@app.route('/help')
+def help():
+    if 'user_id' not in session: return redirect(url_for('login'))
+    
+    help_protocols = {
+        'Account Systems': ['Reset Node Password', 'Two-Factor Authentication', 'Manage Profile Data', 'Privacy Settings'],
+        'Skill Operations': ['Adding New Skills', 'Matching Algorithms', 'Verified Mentor Status', 'Skill Categories'],
+        'Technical Protocols': ['Node Latency Issues', 'Socket Connection Reset', 'Database Syncing', 'RTX 3090 Optimization'],
+        'Reputation & Swaps': ['Earning Swap Points', 'Reporting Bad Nodes', 'Community Guidelines', 'Safety Protocols']
+    }
+    
+    return render_template('help.html', name=session['user_name'], help_data=help_protocols)
+
+# --- SKILL & PROFILE ---
 @app.route('/add_skill', methods=['POST'])
 def add_skill():
     if 'user_id' not in session: return redirect(url_for('login'))
@@ -177,7 +189,6 @@ def add_skill():
         flash(f'Skill {name} added!', 'success')
     return redirect(url_for('dashboard'))
 
-# --- USER PROFILE ---
 @app.route('/profile')
 def profile():
     if 'user_id' not in session: return redirect(url_for('login'))
@@ -205,7 +216,6 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# --- ADMIN PURGE ---
 @app.route('/delete_user/<int:user_id>')
 def delete_user(user_id):
     if session.get('is_admin') == 1:
@@ -218,6 +228,5 @@ def delete_user(user_id):
     return redirect(url_for('dashboard'))
 
 if __name__ == '__main__':
-    # Zaruri: SocketIO ke liye socketio.run use karein
     port = int(os.environ.get("PORT", 5000))
     socketio.run(app, host='0.0.0.0', port=port, debug=True)
