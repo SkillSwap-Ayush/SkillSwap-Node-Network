@@ -3,132 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkillSwap Pro | Electric Edition</title>
+    <title>SkillSwap Pro | Dual Tone</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     
     <style>
         :root { 
-            --sidebar-width: 280px; 
-            --transition-speed: 0.4s;
-            --cyber-blue: #00d2ff; /* Sky Blue */
-            --cyber-pink: #ff007f; /* Hot Pink */
-            --cyber-yellow: #ffee00; /* Neon Yellow */
-            --light-bg: #f8faff;
-            --dark-bg: #0b0e11;
+            --sidebar-width: 260px; 
+            /* ONLY 2 COLORS COMBINATION */
+            --primary-blue: #0062ff; /* Pure Electric Blue */
+            --bg-light: #f4f7fe;    /* Clean White-Blue Tint */
+            --text-main: #1e293b;
         }
         
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: var(--light-bg);
-            color: #1a202c;
-            overflow-x: hidden;
-            transition: all var(--transition-speed);
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            transition: all 0.3s ease;
         }
 
-        /* --- Dark Mode Support --- */
-        body.dark-theme {
-            background-color: var(--dark-bg) !important;
-            color: #e2e8f0;
-        }
-
-        /* --- Custom Loader --- */
-        #loader-overlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: #ffffff;
-            z-index: 9999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 0.6s ease;
-        }
-        body.dark-theme #loader-overlay { background: var(--dark-bg); }
-
-        /* --- Electric Sidebar --- */
+        /* --- Minimal Sidebar --- */
         .sidebar { 
             width: var(--sidebar-width); 
             min-height: 100vh; 
             position: fixed; 
-            z-index: 1000;
             background: #ffffff;
-            border-right: 2px solid rgba(0, 210, 255, 0.1);
-            transition: all var(--transition-speed);
+            border-right: 1px solid rgba(0, 98, 255, 0.1);
             display: flex;
             flex-direction: column;
-            box-shadow: 10px 0 30px rgba(0,0,0,0.02);
-        }
-        body.dark-theme .sidebar {
-            background: rgba(15, 17, 20, 0.95);
-            backdrop-filter: blur(15px);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 1000;
         }
 
-        /* --- Nav Links with Custom Colors --- */
+        .sidebar-logo {
+            padding: 30px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+            letter-spacing: -1px;
+        }
+
         .nav-link {
             color: #64748b;
             font-weight: 600;
-            padding: 12px 20px;
-            border-radius: 14px;
-            margin: 4px 15px;
-            transition: 0.3s;
+            padding: 12px 25px;
+            margin: 2px 15px;
+            border-radius: 12px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
         }
 
-        /* Dashboard - Blue */
+        /* Active State - Only Blue */
         .nav-link:hover, .nav-link.active {
-            background: linear-gradient(45deg, var(--cyber-blue), #00bcff);
-            color: #fff !important;
-            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
-            transform: translateX(5px);
+            background: rgba(0, 98, 255, 0.08);
+            color: var(--primary-blue) !important;
         }
 
-        /* Sidebar Section Labels */
-        .section-label {
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            font-weight: 800;
-            letter-spacing: 1.5px;
-            color: var(--cyber-pink);
-            margin: 20px 0 10px 30px;
+        .nav-link.active i {
+            color: var(--primary-blue);
         }
 
-        /* --- Content Area --- */
+        /* --- Main Content --- */
         .main-content { 
             margin-left: var(--sidebar-width); 
-            min-height: 100vh;
             padding: 30px;
         }
 
-        /* --- Telemetry Boxes --- */
-        .telemetry-box {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            padding: 6px 14px;
-            border-radius: 10px;
-            background: #fff;
-            color: var(--cyber-blue);
-            border: 1px solid rgba(0, 210, 255, 0.2);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-        }
-        body.dark-theme .telemetry-box {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255,255,255,0.1);
-        }
-
-        .latency-pulse { color: var(--cyber-pink); font-weight: bold; }
-
-        /* Status Badge Yellow */
-        .rtx-badge {
-            background: var(--cyber-yellow);
-            color: #000;
-            font-size: 0.7rem;
-            font-weight: 800;
-            padding: 4px 12px;
+        /* --- Unified Card Style --- */
+        .custom-card {
+            background: #ffffff;
+            border: 1px solid rgba(0, 98, 255, 0.05);
             border-radius: 20px;
-            box-shadow: 0 0 15px rgba(255, 238, 0, 0.4);
+            box-shadow: 0 10px 25px rgba(0, 98, 255, 0.02);
+            padding: 20px;
+        }
+
+        .status-badge {
+            background: rgba(0, 98, 255, 0.1);
+            color: var(--primary-blue);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 5px 15px;
+            border-radius: 100px;
+        }
+
+        /* Simple Header */
+        .top-nav {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 15px 25px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(0, 98, 255, 0.05);
+        }
+
+        .btn-primary-custom {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-primary-custom:hover {
+            box-shadow: 0 5px 15px rgba(0, 98, 255, 0.3);
+            opacity: 0.9;
         }
 
         @media (max-width: 992px) {
@@ -137,134 +123,59 @@
         }
     </style>
 </head>
-<body class="dark-theme"> <div id="loader-overlay">
-        <div class="text-center">
-            <div class="spinner-grow text-info" role="status" style="width: 3rem; height: 3rem;"></div>
-            <p class="mt-4 fw-bold" style="letter-spacing: 3px; font-family: 'JetBrains Mono'; color: var(--cyber-blue);">NODE_LOADING...</p>
-        </div>
-    </div>
+<body>
 
-    <div class="sidebar shadow-sm">
-        <div class="p-4 text-center">
-            <h2 class="fw-bold mb-0" style="letter-spacing: -1px; color: #1a202c;">Skill<span style="color: var(--cyber-pink);">Swap</span></h2>
-            <div class="mt-2">
-                <span class="rtx-badge"><i class="bi bi-cpu me-1"></i> RTX 3090 CORE</span>
-            </div>
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            SkillSwap<span style="opacity: 0.5;">.</span>
         </div>
         
-        <div class="overflow-y-auto">
-            <div class="section-label">Main Console</div>
+        <div class="mt-2">
             <a href="{{ url_for('dashboard') }}" class="nav-link {{ 'active' if request.path == url_for('dashboard') }}">
-                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                <i class="bi bi-grid-fill me-3"></i> Dashboard
             </a>
             <a href="{{ url_for('profile') }}" class="nav-link {{ 'active' if request.path == url_for('profile') }}">
-                <i class="bi bi-person-bounding-box me-2" style="color: var(--cyber-blue);"></i> My Profile
+                <i class="bi bi-person-fill me-3"></i> Profile
             </a>
             <a href="{{ url_for('mentors') }}" class="nav-link {{ 'active' if request.path == url_for('mentors') }}">
-                <i class="bi bi-lightning-charge-fill me-2" style="color: var(--cyber-yellow); -webkit-text-stroke: 1px #888;"></i> Mentors
+                <i class="bi bi-award-fill me-3"></i> Mentors
             </a>
-
-            <div class="section-label" style="color: var(--cyber-blue);">Connectivity</div>
             <a href="{{ url_for('notifications') }}" class="nav-link {{ 'active' if request.path == url_for('notifications') }}">
-                <i class="bi bi-bell-fill me-2" style="color: var(--cyber-pink);"></i> Notifications
+                <i class="bi bi-bell-fill me-3"></i> Notifications
             </a>
-            <a href="{{ url_for('categories') }}" class="nav-link {{ 'active' if request.path == url_for('categories') }}">
-                <i class="bi bi-grid-fill me-2" style="color: var(--cyber-blue);"></i> Clusters
-            </a>
-
-            <div class="section-label">System</div>
             <a href="{{ url_for('settings') }}" class="nav-link {{ 'active' if request.path == url_for('settings') }}">
-                <i class="bi bi-sliders me-2"></i> Node Config
-            </a>
-            <a href="{{ url_for('help') }}" class="nav-link">
-                <i class="bi bi-question-diamond-fill me-2" style="color: var(--cyber-yellow);"></i> Help Desk
+                <i class="bi bi-gear-fill me-3"></i> Settings
             </a>
         </div>
 
         <div class="p-4 mt-auto">
-            <a href="{{ url_for('logout') }}" class="btn btn-dark w-100 rounded-4 fw-bold shadow">
-                <i class="bi bi-power me-2"></i> DISCONNECT
+            <a href="{{ url_for('logout') }}" class="btn w-100 fw-bold" style="color: #ef4444; background: rgba(239, 68, 68, 0.05); border-radius: 12px;">
+                <i class="bi bi-power me-2"></i> Logout
             </a>
         </div>
     </div>
 
     <div class="main-content">
         
-        <div class="d-flex justify-content-between align-items-center mb-4 p-3 rounded-4 bg-white shadow-sm border border-info border-opacity-10">
-            <div class="d-flex align-items-center gap-2">
-                <div class="telemetry-box d-none d-md-block">
-                    <i class="bi bi-activity me-1"></i> LATENCY: <span id="latency" class="latency-pulse">--ms</span>
-                </div>
-                <div class="telemetry-box d-none d-lg-block" style="border-color: var(--cyber-pink);">
-                    <i class="bi bi-reception-4 me-1" style="color: var(--cyber-pink);"></i> STATUS: ONLINE
-                </div>
+        <div class="top-nav">
+            <div>
+                <span class="status-badge">
+                    <i class="bi bi-circle-fill me-2" style="font-size: 8px;"></i> System Online
+                </span>
             </div>
             
-            <div class="d-flex align-items-center gap-4">
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="themeSwitch" onclick="toggleTheme()" checked>
-                    <i class="bi bi-moon-stars-fill ms-1 small text-primary"></i>
-                </div>
-                
+            <div class="d-flex align-items-center gap-3">
                 <div class="text-end d-none d-sm-block">
-                    <p class="mb-0 fw-bold small text-uppercase">{{ name }}</p>
-                    <span class="text-muted" style="font-size: 10px; font-family: 'JetBrains Mono';">UID: SS-{{ session['user_id'] }}</span>
+                    <p class="mb-0 fw-bold small">{{ name }}</p>
+                    <span class="text-muted small" style="font-size: 11px;">ID: SS-{{ session['user_id'] }}</span>
                 </div>
-                
-                <div class="dropdown">
-                    <img src="https://ui-avatars.com/api/?name={{ name }}&background=00d2ff&color=fff&bold=true" 
-                         class="rounded-circle cursor-pointer border border-3 border-white shadow-sm" width="45" data-bs-toggle="dropdown">
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 mt-3">
-                        <li><a class="dropdown-item p-3" href="{{ url_for('profile') }}"><i class="bi bi-person-circle me-2"></i> Account Info</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item p-3 text-danger" href="{{ url_for('logout') }}"><i class="bi bi-terminal me-2"></i> Shutdown Session</a></li>
-                    </ul>
-                </div>
+                <img src="https://ui-avatars.com/api/?name={{ name }}&background=0062ff&color=fff&bold=true" class="rounded-circle" width="40">
             </div>
         </div>
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="alert alert-{{ category }} border-0 shadow-sm rounded-4 mb-4" role="alert">
-                <i class="bi bi-patch-check-fill me-2"></i> {{ message }}
-              </div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
 
         {% block content %}{% endblock %}
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Loader Logic
-        window.addEventListener('load', () => {
-            const loader = document.getElementById('loader-overlay');
-            loader.style.opacity = '0';
-            setTimeout(() => { loader.style.display = 'none'; }, 600);
-        });
-
-        // Live Latency Simulation
-        setInterval(() => {
-            const lat = Math.floor(Math.random() * (18 - 5 + 1) + 5);
-            const latencyEl = document.getElementById('latency');
-            if(latencyEl) latencyEl.innerText = lat + 'ms';
-        }, 2000);
-
-        // Theme Toggle Logic
-        function toggleTheme() {
-            const body = document.body;
-            body.classList.toggle('dark-theme');
-            const isDark = body.classList.contains('dark-theme');
-            localStorage.setItem('skillswap_theme', isDark ? 'dark' : 'light');
-        }
-
-        // Keep theme on reload
-        if (localStorage.getItem('skillswap_theme') === 'light') {
-            document.body.classList.remove('dark-theme');
-            document.getElementById('themeSwitch').checked = false;
-        }
-    </script>
 </body>
 </html>
