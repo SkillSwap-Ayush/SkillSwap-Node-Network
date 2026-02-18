@@ -1,13 +1,16 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import sqlite3
 import os
 import random
 import hashlib
+from datetime import datetime # Chuta tha (Zaruri hai chat ke liye)
+from flask_socketio import SocketIO, emit, join_room # Chuta tha (Zaruri hai live chat ke liye)
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = 'ayush_rtx3090_secret_key_pro'
+socketio = SocketIO(app, cors_allowed_origins="*") # Socket initialize kiya
 
-# --- DATABASE PATH CONFIGURATION (Render Special) ---
+# --- DATABASE PATH CONFIGURATION ---
 basedir = os.path.abspath(os.path.dirname(__file__))
 DB_PATH = os.path.join(basedir, 'database.db')
 
@@ -16,37 +19,65 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
-# --- MODULES / UTILS ---
 def hash_pass(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-# --- DATABASE INITIALIZATION ---
+# --- DATABASE INITIALIZATION (Updated with Messages) ---
 def init_db():
     conn = get_db_connection()
     # Users Table
     conn.execute('''CREATE TABLE IF NOT EXISTS users 
                     (id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                    name TEXT NOT NULL, 
-                    email UNIQUE NOT NULL, 
-                    password TEXT NOT NULL,
-                    bio TEXT DEFAULT 'SkillSwap Node Member',
-                    role TEXT DEFAULT 'Expert/Mentor',
-                    location TEXT DEFAULT 'Not Set',
-                    website TEXT DEFAULT '',
-                    is_admin INTEGER DEFAULT 0)''')
+                    name TEXT NOT NULL, email UNIQUE NOT NULL, password TEXT NOT NULL,
+                    bio TEXT DEFAULT 'SkillSwap Node Member', role TEXT DEFAULT 'Expert/Mentor',
+                    location TEXT DEFAULT 'Not Set', website TEXT DEFAULT '', is_admin INTEGER DEFAULT 0)''')
     
     # Skills Table
     conn.execute('''CREATE TABLE IF NOT EXISTS skills 
-                    (id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                    user_id INTEGER, 
-                    skill_name TEXT NOT NULL, 
-                    skill_type TEXT NOT NULL, 
+                    (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, 
+                    skill_name TEXT NOT NULL, skill_type TEXT NOT NULL, 
                     FOREIGN KEY(user_id) REFERENCES users(id))''')
+
+    # --- CHAT MESSAGES TABLE (Naya Addition) ---
+    conn.execute('''CREATE TABLE IF NOT EXISTS messages 
+                    (id INTEGER PRIMARY KEY AUTOINCREMENT, room TEXT NOT NULL, 
+                    sender TEXT NOT NULL, message TEXT NOT NULL, timestamp DATETIME)''')
+    
     conn.commit()
     conn.close()
 
 with app.app_context():
     init_db()
+
+# --- SOCKET.IO LOGIC (Live Chat) ---
+@socketio.on('join')
+def handle_join(data):
+    room = data['room']
+    join_room(room)
+
+@socketio.on('send_message')
+def handle_send(data):
+    room = data['room']
+    msg = data['message']
+    sender = session.get('user_name', 'Anonymous')
+    
+    # Save to Database
+    conn = get_db_connection()
+    conn.execute('INSERT INTO messages (room, sender, message, timestamp) VALUES (?, ?, ?, ?)',
+                 (room, sender, msg, datetime.now()))
+    conn.commit()
+    conn.close()
+    
+    # Broadcast to Room
+    emit('receive_message', {'message': msg, 'sender': sender}, room=room)
+
+# Route to fetch history
+@app.route('/get_messages/<room>')
+def get_messages(room):
+    conn = get_db_connection()
+    msgs = conn.execute('SELECT sender, message FROM messages WHERE room = ? ORDER BY timestamp ASC', (room,)).fetchall()
+    conn.close()
+    return jsonify([dict(m) for m in msgs])
 
 # --- AUTH ROUTES ---
 @app.route('/')
@@ -87,7 +118,7 @@ def register():
             conn.close()
     return render_template('register.html')
 
-# --- MAIN DASHBOARD ---
+# --- DASHBOARD ---
 @app.route('/dashboard')
 def dashboard():
     if 'user_id' not in session: return redirect(url_for('login'))
@@ -103,42 +134,33 @@ def dashboard():
 
     analytics = {
         'match_accuracy': f"{random.randint(88, 99)}%",
-        'community_growth': f"+{random.randint(12, 30)}%",
         'ai_recommendations': ['React Pro', 'UI/UX Design', 'Cloud Architecture', 'Python AI'],
-        'node_status': 'Ultra-Stable',
         'reputation_score': random.randint(450, 999)
     }
 
     telemetry = {
         'uptime': '99.99%', 
         'node_load': f"{random.randint(8, 22)}%", 
-        'active_swaps': random.randint(1200, 4500),
-        'server_region': 'India-West-1'
+        'active_swaps': random.randint(1200, 4500)
     }
     
     if selected_cat == 'All':
-        others = conn.execute('''SELECT users.name, skills.skill_name, skills.skill_type 
+        others = conn.execute('''SELECT users.id as uid, users.name, skills.skill_name, skills.skill_type 
                                  FROM users JOIN skills ON users.id = skills.user_id 
                                  WHERE users.id != ? LIMIT 15''', (session['user_id'],)).fetchall()
     else:
-        others = conn.execute('''SELECT users.name, skills.skill_name, skills.skill_type 
+        others = conn.execute('''SELECT users.id as uid, users.name, skills.skill_name, skills.skill_type 
                                  FROM users JOIN skills ON users.id = skills.user_id 
                                  WHERE users.id != ? AND (skills.skill_name LIKE ? OR skills.skill_name LIKE ?)''', 
                               (session['user_id'], f'%{selected_cat}%', f'%{selected_cat}%')).fetchall()
     
-    my_skills = conn.execute('SELECT * FROM skills WHERE user_id = ?', (session['user_id'],)).fetchall()
     all_users = conn.execute('SELECT * FROM users').fetchall() if session.get('is_admin') == 1 else []
     conn.close()
     
     return render_template('dashboard.html', 
-                           name=session['user_name'], 
-                           stats=db_stats, 
-                           analytics=analytics, 
-                           telemetry=telemetry, 
-                           others=others, 
-                           my_skills=my_skills, 
-                           current_cat=selected_cat,
-                           all_users=all_users)
+                           name=session['user_name'], stats=db_stats, 
+                           analytics=analytics, telemetry=telemetry, 
+                           others=others, current_cat=selected_cat, all_users=all_users)
 
 # --- SKILL MANAGEMENT ---
 @app.route('/add_skill', methods=['POST'])
@@ -152,7 +174,7 @@ def add_skill():
                      (session['user_id'], name, skill_type))
         conn.commit()
         conn.close()
-        flash(f'Skill {name} added to your node!', 'success')
+        flash(f'Skill {name} added!', 'success')
     return redirect(url_for('dashboard'))
 
 # --- USER PROFILE ---
@@ -170,51 +192,13 @@ def update_profile():
     if 'user_id' not in session: return redirect(url_for('login'))
     conn = get_db_connection()
     conn.execute('UPDATE users SET name = ?, bio = ?, role = ?, location = ?, website = ? WHERE id = ?', 
-                 (request.form.get('full_name'), request.form.get('bio'), request.form.get('role'), request.form.get('location'), request.form.get('website'), session['user_id']))
+                 (request.form.get('full_name'), request.form.get('bio'), request.form.get('role'), 
+                  request.form.get('location'), request.form.get('website'), session['user_id']))
     conn.commit()
     conn.close()
     session['user_name'] = request.form.get('full_name')
-    flash('Node Profile Updated!', 'success')
+    flash('Profile Updated!', 'success')
     return redirect(url_for('profile'))
-
-# --- FEATURES ---
-@app.route('/notifications')
-def notifications():
-    if 'user_id' not in session: return redirect(url_for('login'))
-    notifs = [
-        {'id': 1, 'title': 'Skill Match!', 'desc': 'New Mentor found for Python.', 'time': '2m ago', 'icon': 'bi-lightning', 'color': 'info'},
-        {'id': 2, 'title': 'System Update', 'desc': 'Node RTX 3090 optimized.', 'time': '1h ago', 'icon': 'bi-cpu', 'color': 'primary'}
-    ]
-    return render_template('notifications.html', name=session['user_name'], notifications=notifs)
-
-@app.route('/settings')
-def settings():
-    if 'user_id' not in session: return redirect(url_for('login'))
-    options = {
-        'privacy': ['Public Node', 'Show Email', 'Allow Direct Swaps'],
-        'alerts': ['Email Pings', 'Match Notifications', 'Node Reports']
-    }
-    return render_template('settings.html', name=session['user_name'], options=options)
-
-@app.route('/mentors')
-def mentors():
-    if 'user_id' not in session: return redirect(url_for('login'))
-    conn = get_db_connection()
-    mentors_list = conn.execute('''SELECT users.name, skills.skill_name, users.email 
-                                 FROM users JOIN skills ON users.id = skills.user_id 
-                                 WHERE skills.skill_type = "Teach"''').fetchall()
-    conn.close()
-    return render_template('mentors.html', name=session['user_name'], mentors=mentors_list)
-
-@app.route('/categories')
-def categories():
-    if 'user_id' not in session: return redirect(url_for('login'))
-    return render_template('categories.html', name=session['user_name'])
-
-@app.route('/help')
-def help():
-    if 'user_id' not in session: return redirect(url_for('login'))
-    return render_template('help.html', name=session['user_name'])
 
 @app.route('/logout')
 def logout():
@@ -234,5 +218,6 @@ def delete_user(user_id):
     return redirect(url_for('dashboard'))
 
 if __name__ == '__main__':
+    # Zaruri: SocketIO ke liye socketio.run use karein
     port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    socketio.run(app, host='0.0.0.0', port=port, debug=True)
